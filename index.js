@@ -25,14 +25,19 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         // await client.connect();
         const courseCollection = client.db("SkillSync").collection("courses");
+        const studentCollection = client.db("SkillSync").collection("students");
 
 
-        // Get All Courses API 
+
+        /**
+         * Cousres Related All API Start here 
+         *  Get All Courses API 
+         * */
         app.get("/courses", async (req, res) => {
             const result = await courseCollection.find().toArray();
             res.send(result);
         });
-        
+
         //Get single Course by ID
         app.get("/courses/:id", async (req, res) => {
             const id = req.params.id;
@@ -42,7 +47,7 @@ async function run() {
         });
 
         // Update Single Course By Id 
-        app.get("/courses/:id", async (req, res) => {
+        app.put("/courses/:id", async (req, res) => {
             const id = req.params.id;
             const course = req.body;
             const filter = { _id: new ObjectId(id) }
@@ -72,6 +77,67 @@ async function run() {
             const result = await courseCollection.deleteOneOne(filter);
             res.send(result);
         });
+
+        /**
+         * Student Related All API Start Here 
+         * Get All Student
+         */
+        app.get("/students", async (req, res) => {
+            const result = await studentCollection.find().toArray();
+            res.send(result);
+        });
+
+
+        // Get Single Student By Id 
+        app.get("/students/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const result = await studentCollection.findOne(filter);
+            res.send(result);
+        });
+
+        // Update Single Student Data With Id 
+        app.put("/students/:id", async (req, res) => {
+            const id = req.params.id;
+            const student = req.body;
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    name: student.name,
+                    image: student.image,
+                    enrolledCourseId: student.enrolledCourseId,
+                    completedCourseId: student.completedCourseId,
+                    fathersName: student.fathersName,
+                    mothersName: student.mothersName,
+                    email: student.email,
+                    phoneNumber: student.phoneNumber
+                }
+            }
+            const result = await studentCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        });
+
+        // Get Single Student By Id 
+        app.delete("/students/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const result = await studentCollection.deleteOne(filter);
+            res.send(result);
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         // Send a ping to confirm a successful connection
