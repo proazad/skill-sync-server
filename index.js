@@ -8,7 +8,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.h7gpv70.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -24,6 +24,56 @@ async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
         // await client.connect();
+        const courseCollection = client.db("SkillSync").collection("courses");
+
+
+        // Get All Courses API 
+        app.get("/courses", async (req, res) => {
+            const result = await courseCollection.find().toArray();
+            res.send(result);
+        });
+        
+        //Get single Course by ID
+        app.get("/courses/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const result = await courseCollection.findOne(filter);
+            res.send(result);
+        });
+
+        // Update Single Course By Id 
+        app.get("/courses/:id", async (req, res) => {
+            const id = req.params.id;
+            const course = req.body;
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    title: course.title,
+                    image: course.image,
+                    lesson: course.lesson,
+                    duration: course.duration,
+                    ratings: course.ratings,
+                    label: course.label,
+                    description: course.description,
+                    enrolled: course.enrolled,
+                    mentor: course.mentor,
+                    mentorId: course.mentorId,
+                    email: course.email
+                }
+            }
+            const result = await courseCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        });
+
+        // Delete Single Course By ID 
+        app.delete("/courses/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const result = await courseCollection.deleteOneOne(filter);
+            res.send(result);
+        });
+
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
