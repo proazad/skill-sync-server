@@ -27,6 +27,7 @@ async function run() {
         const studentCollection = client.db("SkillSync").collection("students");
         const feedbackCollection = client.db("SkillSync").collection("feedback");
         const partnersCollection = client.db("SkillSync").collection("partners");
+        const mentorsCollection = client.db("SkillSync").collection("mentors");
 
 
 
@@ -138,6 +139,7 @@ async function run() {
             const result = await feedbackCollection.find().toArray();
             res.send(result);
         });
+
         /**
          * Get Single Feedback API 
          */
@@ -147,6 +149,8 @@ async function run() {
             const result = await feedbackCollection.findOne(filter);
             res.send(result);
         });
+
+
 
         /**
          * Get Partner Related API
@@ -159,7 +163,23 @@ async function run() {
         });
 
 
-
+        /**
+         * Instructors / Mentors Related API 
+         * Get all Instructors/mentors 
+         */
+        app.get("/mentors", async (req, res) => {
+            const result = await mentorsCollection.find().toArray();
+            res.send(result);
+        })
+        /**
+         * Get Single Mentors by ID
+         */
+        app.get("/mentors/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const result = await mentorsCollection.findOne(filter);
+            res.send(result);
+        })
 
 
 
