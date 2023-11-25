@@ -28,6 +28,7 @@ async function run() {
         const feedbackCollection = client.db("SkillSync").collection("feedback");
         const partnersCollection = client.db("SkillSync").collection("partners");
         const mentorsCollection = client.db("SkillSync").collection("mentors");
+        const eventsCollection = client.db("SkillSync").collection("events");
 
 
 
@@ -182,6 +183,32 @@ async function run() {
         })
 
 
+        /**
+         * Upcoming Events Related API
+         * Get all Events
+         */
+        app.get("/events", async (req, res) => {
+            const result = await eventsCollection.find().toArray();
+            res.send(result)
+        });
+        /**
+         * Get Single Events by Id 
+         */
+        app.get("/events/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const result = await eventsCollection.findOne(filter);
+            res.send(result)
+        });
+
+        /**
+         * Add Post Single Events 
+         */
+        app.post("/events", async (req, res) => {
+            const event = req.body;
+            const result = await eventsCollection.insertOne(event);
+            res.send(result)
+        });
 
 
 
