@@ -49,6 +49,12 @@ async function run() {
             const result = await courseCollection.findOne(filter);
             res.send(result);
         });
+        //Post Single Post 
+        app.post("/courses", async (req, res) => {
+            const course = req.body;
+            const result = await courseCollection.insertOne(course);
+            res.send(result);
+        });
 
         // Update Single Course By Id 
         app.put("/courses/:id", async (req, res) => {
@@ -97,6 +103,12 @@ async function run() {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
             const result = await studentCollection.findOne(filter);
+            res.send(result);
+        });
+        // Create Single Student API 
+        app.post("/students", async (req, res) => {
+            const student = req.body;
+            const result = await studentCollection.insertOne(student);
             res.send(result);
         });
 
