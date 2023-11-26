@@ -108,9 +108,15 @@ async function run() {
         // Create Single Student API 
         app.post("/students", async (req, res) => {
             const student = req.body;
+            const query = { email: student.email }
+            const existingStudent = await studentCollection.findOne(query);
+            if (existingStudent) {
+                return res.send({ message: "User already Exist", insertedId: null })
+            }
             const result = await studentCollection.insertOne(student);
             res.send(result);
         });
+
 
         // Update Single Student Data With Id 
         app.put("/students/:id", async (req, res) => {
@@ -184,6 +190,7 @@ async function run() {
             const result = await mentorsCollection.find().toArray();
             res.send(result);
         })
+
         /**
          * Get Single Mentors by ID
          */
@@ -193,7 +200,19 @@ async function run() {
             const result = await mentorsCollection.findOne(filter);
             res.send(result);
         })
-
+        /**
+         * Post New Mentors 
+         */
+        app.post("/mentors", async (req, res) => {
+            const mentor = req.body;
+            const query = { email: mentor.email }
+            const existingStudent = await mentorsCollection.findOne(query);
+            if (existingStudent) {
+                return res.send({ message: "User already Exist", insertedId: null })
+            }
+            const result = await mentorsCollection.insertOne(student);
+            res.send(result);
+        });
 
         /**
          * Upcoming Events Related API
