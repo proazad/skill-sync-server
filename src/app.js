@@ -98,12 +98,14 @@ async function run() {
         });
 
 
-        // Get All Student By Id 
+        // Get All Student By Role 
         app.get("/users/role/student", async (req, res) => {
             const filter = { role: "student" }
             const result = await userCollection.find(filter).toArray();
             res.send(result);
         });
+
+        // Get Single Student By id
         app.get("/users/role/student/:id", async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
@@ -111,7 +113,47 @@ async function run() {
             res.send(result);
         });
 
-        // Get user User By Id 
+        // Get All Student By Role 
+        app.get("/users/role/student", async (req, res) => {
+            const filter = { role: "student" }
+            const result = await userCollection.find(filter).toArray();
+            res.send(result);
+        });
+        // Get All Instructor who is request for Teacher 
+        app.get("/users/wantinstructor", async (req, res) => {
+            const filter = { IswantInstructor: true }
+            const result = await userCollection.find(filter).toArray();
+            res.send(result);
+        });
+
+        // Make Instructor or Reject 
+        app.put("/users/instructor/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    IswantInstructor: false,
+                    role: "instructor",
+                    requestReject: false,
+                }
+            }
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        });
+        // Make Instructor or Reject 
+        app.put("/users/instructor/requestreject/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    requestReject: true,
+                }
+            }
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        });
+
+        // Get user User By Email
         app.get("/users/:email", async (req, res) => {
             const email = req.params.email;
             const filter = { email: email }
