@@ -35,10 +35,17 @@ async function run() {
 
         /**
          * Cousres Related All API Start here 
-         *  Get All Courses API 
+         *  Get Approved Course All Courses API 
          * */
         app.get("/courses", async (req, res) => {
-            const result = await courseCollection.find().toArray();
+            const filter = { isApproved: "approved" }
+            const result = await courseCollection.find(filter).toArray();
+            res.send(result);
+        });
+        // All Course Request 
+        app.get("/courses/request", async (req, res) => {
+            const filter = { isApproved: "cencel" }
+            const result = await courseCollection.find(filter).toArray();
             res.send(result);
         });
 
@@ -49,6 +56,34 @@ async function run() {
             const result = await courseCollection.findOne(filter);
             res.send(result);
         });
+
+        // Approve Course  
+        app.put("/courses/approve/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    isApproved: "approved",
+                }
+            }
+            const result = await courseCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        });
+
+        // Cancel Course  
+        app.put("/courses/cancel/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    isApproved: "cancel",
+                }
+            }
+            const result = await courseCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        });
+
+
         //Post Single Post 
         app.post("/courses", async (req, res) => {
             const course = req.body;
@@ -119,6 +154,14 @@ async function run() {
             const result = await userCollection.find(filter).toArray();
             res.send(result);
         });
+
+        // Get All Instructor  By Role 
+        app.get("/users/role/instructor", async (req, res) => {
+            const filter = { role: "instructor" }
+            const result = await userCollection.find(filter).toArray();
+            res.send(result);
+        });
+
         // Get All Instructor who is request for Teacher 
         app.get("/users/wantinstructor", async (req, res) => {
             const filter = { IswantInstructor: true }
@@ -140,6 +183,7 @@ async function run() {
             const result = await userCollection.updateOne(filter, updateDoc);
             res.send(result);
         });
+
         // Make Instructor or Reject 
         app.put("/users/instructor/requestreject/:id", async (req, res) => {
             const id = req.params.id;
@@ -152,6 +196,7 @@ async function run() {
             const result = await userCollection.updateOne(filter, updateDoc);
             res.send(result);
         });
+
 
         // Get user User By Email
         app.get("/users/:email", async (req, res) => {
