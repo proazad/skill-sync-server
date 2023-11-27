@@ -24,7 +24,7 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         // await client.connect();
         const courseCollection = client.db("SkillSync").collection("courses");
-        const studentCollection = client.db("SkillSync").collection("students");
+        const userCollection = client.db("SkillSync").collection("users");
         const feedbackCollection = client.db("SkillSync").collection("feedback");
         const partnersCollection = client.db("SkillSync").collection("partners");
         const mentorsCollection = client.db("SkillSync").collection("mentors");
@@ -92,58 +92,72 @@ async function run() {
          * Student Related All API Start Here 
          * Get All Student
          */
-        app.get("/students", async (req, res) => {
-            const result = await studentCollection.find().toArray();
+        app.get("/users", async (req, res) => {
+            const result = await userCollection.find().toArray();
             res.send(result);
         });
 
 
-        // Get Single Student By Id 
-        app.get("/students/:id", async (req, res) => {
+        // Get All Student By Id 
+        app.get("/users/role/student", async (req, res) => {
+            const filter = { role: "student" }
+            const result = await userCollection.find(filter).toArray();
+            res.send(result);
+        });
+        app.get("/users/role/student/:id", async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
-            const result = await studentCollection.findOne(filter);
+            const result = await userCollection.findOne(filter);
             res.send(result);
         });
-        // Create Single Student API 
-        app.post("/students", async (req, res) => {
-            const student = req.body;
+
+        // Get user User By Id 
+        app.get("/users/:email", async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email }
+            const result = await userCollection.findOne(filter);
+            res.send(result);
+        });
+
+        // Create user Student API 
+        app.post("/users", async (req, res) => {
+            const user = req.body;
             const query = { email: student.email }
-            const existingStudent = await studentCollection.findOne(query);
-            if (existingStudent) {
+            const existingUser = await userCollection.findOne(query);
+            if (existingUser) {
                 return res.send({ message: "User already Exist", insertedId: null })
             }
-            const result = await studentCollection.insertOne(student);
+            const result = await userCollection.insertOne(user);
             res.send(result);
         });
 
 
-        // Update Single Student Data With Id 
-        app.put("/students/:id", async (req, res) => {
+        // Update user Student Data With Id 
+        app.put("/users/:id", async (req, res) => {
             const id = req.params.id;
-            const student = req.body;
+            const user = req.body;
             const filter = { _id: new ObjectId(id) }
             const updateDoc = {
                 $set: {
-                    name: student.name,
-                    image: student.image,
-                    enrolledCourseId: student.enrolledCourseId,
-                    completedCourseId: student.completedCourseId,
-                    fathersName: student.fathersName,
-                    mothersName: student.mothersName,
-                    email: student.email,
-                    phoneNumber: student.phoneNumber
+                    name: user.name,
+                    image: user.image,
+                    enrolledCourseId: user.enrolledCourseId,
+                    completedCourseId: user.completedCourseId,
+                    fathersName: user.fathersName,
+                    mothersName: user.mothersName,
+                    email: user.email,
+                    phoneNumber: user.phoneNumber
                 }
             }
-            const result = await studentCollection.updateOne(filter, updateDoc);
+            const result = await userCollection.updateOne(filter, updateDoc);
             res.send(result);
         });
 
-        // Get Single Student By Id 
-        app.delete("/students/:id", async (req, res) => {
+        // Delete user user By Id 
+        app.delete("/users/:id", async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
-            const result = await studentCollection.deleteOne(filter);
+            const result = await userCollection.deleteOne(filter);
             res.send(result);
         });
 
@@ -183,38 +197,6 @@ async function run() {
 
 
         /**
-         * Instructors / Mentors Related API 
-         * Get all Instructors/mentors 
-         */
-        app.get("/mentors", async (req, res) => {
-            const result = await mentorsCollection.find().toArray();
-            res.send(result);
-        })
-
-        /**
-         * Get Single Mentors by ID
-         */
-        app.get("/mentors/:id", async (req, res) => {
-            const id = req.params.id;
-            const filter = { _id: new ObjectId(id) };
-            const result = await mentorsCollection.findOne(filter);
-            res.send(result);
-        })
-        /**
-         * Post New Mentors 
-         */
-        app.post("/mentors", async (req, res) => {
-            const mentor = req.body;
-            const query = { email: mentor.email }
-            const existingStudent = await mentorsCollection.findOne(query);
-            if (existingStudent) {
-                return res.send({ message: "User already Exist", insertedId: null })
-            }
-            const result = await mentorsCollection.insertOne(student);
-            res.send(result);
-        });
-
-        /**
          * Upcoming Events Related API
          * Get all Events
          */
@@ -222,6 +204,8 @@ async function run() {
             const result = await eventsCollection.find().toArray();
             res.send(result)
         });
+
+
         /**
          * Get Single Events by Id 
          */
