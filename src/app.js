@@ -38,13 +38,13 @@ async function run() {
          *  Get Approved Course All Courses API 
          * */
         app.get("/courses", async (req, res) => {
-            const filter = { isApproved: "approved" }
+            const filter = { isApproved: true }
             const result = await courseCollection.find(filter).toArray();
             res.send(result);
         });
-        // All Course Request 
+        // All Course Pending Request 
         app.get("/courses/request", async (req, res) => {
-            const filter = { isApproved: "cencel" }
+            const filter = { isApproved: false }
             const result = await courseCollection.find(filter).toArray();
             res.send(result);
         });
@@ -60,14 +60,16 @@ async function run() {
         // Approve Course  
         app.put("/courses/approve/:id", async (req, res) => {
             const id = req.params.id;
-            const filter = { _id: new ObjectId(id) }
+            const filter = { _id: new ObjectId(id) };
             const updateDoc = {
                 $set: {
-                    isApproved: "approved",
+                    isApproved: true,
+                    isreject: false
+
                 }
             }
             const result = await courseCollection.updateOne(filter, updateDoc);
-            res.send(result);
+            res.send(result)
         });
 
         // Cancel Course  
@@ -76,7 +78,7 @@ async function run() {
             const filter = { _id: new ObjectId(id) }
             const updateDoc = {
                 $set: {
-                    isApproved: "cancel",
+                    isreject: true
                 }
             }
             const result = await courseCollection.updateOne(filter, updateDoc);
@@ -169,7 +171,7 @@ async function run() {
             res.send(result);
         });
 
-        // Make Instructor or Reject 
+        // Make Instructor 
         app.put("/users/instructor/:id", async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
@@ -184,7 +186,7 @@ async function run() {
             res.send(result);
         });
 
-        // Make Instructor or Reject 
+        // Make Instructor  Reject 
         app.put("/users/instructor/requestreject/:id", async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
