@@ -1,5 +1,6 @@
-const mongoose = require('mongoose');
-const CourseSchema = mongoose.Schema({
+const { model, Schema } = require("mongoose");
+
+const CourseSchema = new Schema({
     title: {
         type: String,
         required: true
@@ -13,11 +14,11 @@ const CourseSchema = mongoose.Schema({
         required: true
     },
     duration: {
-        type: String,
+        type: Number,
         required: true
     },
     ratings: {
-        type: String,
+        type: Number, 
     },
     enrolled: {
         type: Number,
@@ -27,7 +28,6 @@ const CourseSchema = mongoose.Schema({
         required: true,
     },
     description: {
-
         type: String,
         required: true
     },
@@ -55,7 +55,9 @@ const CourseSchema = mongoose.Schema({
         type: Date,
         required: true
     }
+});
 
-})
 
-module.exports = CourseSchema;
+
+const courseCollection= model("courses",CourseSchema)
+module.exports = courseCollection;
