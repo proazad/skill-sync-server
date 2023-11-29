@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
@@ -8,6 +9,7 @@ const port = process.env.PORT || 5000;
 // Middle Ware 
 app.use(cors());
 app.use(express.json());
+
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.h7gpv70.mongodb.net/?retryWrites=true&w=majority`;
@@ -27,74 +29,87 @@ async function run() {
         const userCollection = client.db("SkillSync").collection("users");
         const feedbackCollection = client.db("SkillSync").collection("feedback");
         const partnersCollection = client.db("SkillSync").collection("partners");
-        const mentorsCollection = client.db("SkillSync").collection("mentors");
         const eventsCollection = client.db("SkillSync").collection("events");
 
+        /**
+         *  JWT Related API 
+         */
 
+        app.post("/jwt", async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_JWT_TOKEN_SECRET, { expiresIn: "1h" });
+            res.send({ token });
+        })
 
+        /** Middle Ware */
+        const verifyToken = async (req, res, next) => {
+            if (!req.headers.authorization) {
+                return res.status(401).send({ message: "Unauthorized Access" });
+            }
+            const token = req.headers.authorization.split(" ")[1];
+            jwt.verify(token, process.env.ACCESS_JWT_TOKEN_SECRET, (err, decoded) => {
+                if (err) {
+                    return res.status(401).send({ message: "Unauthorized Access" });
+                }
+                req.decoded = decoded;
+                next();
+            })
+
+        }
+
+        /** 
+         * verifyAdmin
+         */
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            const isAdmin = user?.role === 'admin';
+            if (!isAdmin) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+            next();
+        }
+        /** 
+         * verifyInstructor
+         */
+        const verifyInstructor = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            const isAdmin = user?.role === 'instructor';
+            if (!isAdmin) {
+                return res.status(403).send({ message: 'forbidden access' });
+            }
+            next();
+        }
 
         /**
          * Cousres Related All API Start here 
-         *  Get Approved Course All Courses API 
+         *  Get All  Course  User Email API 
+         * */
+        app.get("/courses/:email", verifyToken, verifyInstructor, async (req, res) => {
+            const query = { email: req.params.email }
+            const result = await courseCollection.find(query).toArray();
+            res.send(result);
+        });
+        /**
+         *  Get All Courses API 
          * */
         app.get("/courses", async (req, res) => {
-            const filter = { isApproved: true }
-            const result = await courseCollection.find(filter).toArray();
+            const result = await courseCollection.find().toArray();
             res.send(result);
         });
-        // All Course Pending Request 
-        app.get("/courses/request", async (req, res) => {
-            const filter = { isApproved: false }
-            const result = await courseCollection.find(filter).toArray();
-            res.send(result);
-        });
+
+
 
         //Get single Course by ID
         app.get("/courses/:id", async (req, res) => {
-            const id = req.params.id;
-            const filter = { _id: new ObjectId(id) }
-            const result = await courseCollection.findOne(filter);
-            res.send(result);
-        });
-
-        // Approve Course  
-        app.put("/courses/approve/:id", async (req, res) => {
-            const id = req.params.id;
-            const filter = { _id: new ObjectId(id) };
-            const updateDoc = {
-                $set: {
-                    isApproved: true,
-                    isreject: false
-
-                }
-            }
-            const result = await courseCollection.updateOne(filter, updateDoc);
-            res.send(result)
-        });
-
-        // Cancel Course  
-        app.put("/courses/cancel/:id", async (req, res) => {
-            const id = req.params.id;
-            const filter = { _id: new ObjectId(id) }
-            const updateDoc = {
-                $set: {
-                    isreject: true
-                }
-            }
-            const result = await courseCollection.updateOne(filter, updateDoc);
-            res.send(result);
-        });
-
-
-        //Post Single Post 
-        app.post("/courses", async (req, res) => {
-            const course = req.body;
-            const result = await courseCollection.insertOne(course);
-            res.send(result);
+            console.log(req.params.id);
         });
 
         // Update Single Course By Id 
-        app.put("/courses/:id", async (req, res) => {
+        app.put("/courses/update/:id", verifyToken, verifyInstructor, async (req, res) => {
             const id = req.params.id;
             const course = req.body;
             const filter = { _id: new ObjectId(id) }
@@ -116,6 +131,43 @@ async function run() {
             const result = await courseCollection.updateOne(filter, updateDoc);
             res.send(result);
         });
+        // Approve Course  
+        app.put("/courses/approve/:id", verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    isApproved: true,
+                    isreject: false
+
+                }
+            }
+            const result = await courseCollection.updateOne(filter, updateDoc);
+            res.send(result)
+        });
+
+        // Cancel Course  
+        app.put("/courses/cancel/:id", verifyToken, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    isreject: true
+                }
+            }
+            const result = await courseCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        });
+
+
+        //Post Single Post 
+        app.post("/courses", verifyToken, verifyInstructor, async (req, res) => {
+            const course = req.body;
+            const result = await courseCollection.insertOne(course);
+            res.send(result);
+        });
+
+
 
         // Delete Single Course By ID 
         app.delete("/courses/:id", async (req, res) => {
@@ -125,9 +177,12 @@ async function run() {
             res.send(result);
         });
 
+
+
+
         /**
-         * Student Related All API Start Here 
-         * Get All Student
+         * User Related All API Start Here 
+         * Get All User
          */
         app.get("/users", async (req, res) => {
             const result = await userCollection.find().toArray();
@@ -135,12 +190,6 @@ async function run() {
         });
 
 
-        // Get All Student By Role 
-        app.get("/users/role/student", async (req, res) => {
-            const filter = { role: "student" }
-            const result = await userCollection.find(filter).toArray();
-            res.send(result);
-        });
 
         // Get Single Student By id
         app.get("/users/role/student/:id", async (req, res) => {
@@ -150,29 +199,31 @@ async function run() {
             res.send(result);
         });
 
-        // Get All Student By Role 
-        app.get("/users/role/student", async (req, res) => {
-            const filter = { role: "student" }
-            const result = await userCollection.find(filter).toArray();
-            res.send(result);
-        });
 
-        // Get All Instructor  By Role 
-        app.get("/users/role/instructor", async (req, res) => {
-            const filter = { role: "instructor" }
-            const result = await userCollection.find(filter).toArray();
-            res.send(result);
-        });
 
-        // Get All Instructor who is request for Teacher 
-        app.get("/users/wantinstructor", async (req, res) => {
-            const filter = { IswantInstructor: true }
-            const result = await userCollection.find(filter).toArray();
+
+
+
+
+        //Request For Instructor 
+        app.put("/users/instructor/request/:email", verifyToken, async (req, res) => {
+            const email = req.params.email;
+            const instructor = req.body;
+            const filter = { email: email }
+            const updateDoc = {
+                $set: {
+                    label: instructor.label,
+                    expertise: instructor.expertise,
+                    name: instructor.name,
+                    IswantInstructor: instructor.IswantInstructor
+                }
+            }
+            const result = await userCollection.updateOne(filter, updateDoc);
             res.send(result);
         });
 
         // Make Instructor 
-        app.put("/users/instructor/:id", async (req, res) => {
+        app.put("/users/instructor/:id", verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
             const updateDoc = {
@@ -187,7 +238,7 @@ async function run() {
         });
 
         // Make Instructor  Reject 
-        app.put("/users/instructor/requestreject/:id", async (req, res) => {
+        app.put("/users/instructor/requestreject/:id", verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
             const updateDoc = {
@@ -200,7 +251,7 @@ async function run() {
         });
 
 
-        // Get user User By Email
+        // Get User By Email
         app.get("/users/:email", async (req, res) => {
             const email = req.params.email;
             const filter = { email: email }
@@ -208,10 +259,10 @@ async function run() {
             res.send(result);
         });
 
-        // Create user Student API 
+        // Create user API 
         app.post("/users", async (req, res) => {
             const user = req.body;
-            const query = { email: student.email }
+            const query = { email: user.email }
             const existingUser = await userCollection.findOne(query);
             if (existingUser) {
                 return res.send({ message: "User already Exist", insertedId: null })
