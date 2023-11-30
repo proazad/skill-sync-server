@@ -21,8 +21,5 @@ router.get("/partners", async (req, res) => {
 
 
 
-
-
-
 module.exports = router
 

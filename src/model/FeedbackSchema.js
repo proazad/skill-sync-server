@@ -1,5 +1,5 @@
 const { model, Schema } = require("mongoose");
-const FeedbackSchema = new Schema({
+const feedbackSchema = new Schema({
     coursetitle: {
         type: String,
         required: true
@@ -26,5 +26,5 @@ const FeedbackSchema = new Schema({
 
 
 
-const feedbackCollection = model("feedback", FeedbackSchema)
+const feedbackCollection = model("feedbacks", feedbackSchema)
 module.exports = feedbackCollection;

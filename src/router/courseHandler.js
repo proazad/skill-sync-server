@@ -1,7 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
-const courseSchema = require("../model/CourseSchema");
 const verifyToken = require('../middleware/verifyToken');
 const verifyInstructor = require('../middleware/verifyInstructor');
 const verifyAdmin = require('../middleware/verifyAdmin');
@@ -63,11 +62,25 @@ router.put("/courses/update/:id", verifyToken, verifyInstructor, async (req, res
     const result = await courseCollection.updateOne(filter, updateDoc);
     res.send(result);
 });
-
+// Update Course When Enrolled 
+router.put("/courses/enroll/:id", verifyToken, async (req, res) => {
+    const id = req.params.id;
+    const course = req.body;
+    const filter = { _id: id };
+    console.log(course);
+    const updateDoc = {
+        $inc: {
+            enrolled: course.enroll
+        }
+    };
+    const result = await courseCollection.updateOne(filter, updateDoc);
+    res.send(result);
+});
 
 // Approve Course 
 router.put("/courses/approve/:id", verifyToken, verifyAdmin, async (req, res) => {
     const id = req.params.id;
+    console.log(id)
     const filter = { _id: id };
     const updateDoc = {
         $set: {
@@ -95,10 +108,24 @@ router.put("/courses/cancel/:id", verifyToken, verifyAdmin, async (req, res) => 
 
 //Post Single Course
 router.post("/courses", verifyToken, verifyInstructor, async (req, res) => {
-    const course = req.body;
-    const result = await courseCollection.insertOne(course);
-    res.send(result);
+    try {
+        const course = req.body;
+
+        // Validate the course data against the schema
+        const validationError = courseCollection.validate(course);
+
+        if (validationError) {
+            // If validation fails, return a 400 Bad Request with the error details
+            return res.status(400).json({ error: validationError.message });
+        }
+
+        const result = await courseCollection.create(course);
+        res.status(201).json(result);
+    } catch (error) {
+        res.status(500).json({ error: "Internal Server Error" });
+    }
 });
+
 
 // Delete Single Course By ID 
 router.delete("/courses/del/:id", async (req, res) => {

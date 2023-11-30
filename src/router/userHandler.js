@@ -104,23 +104,33 @@ router.post("/users", async (req, res) => {
 });
 
 
-// Update user Student Data With Id 
-router.put("/users/:id", async (req, res) => {
+// Update user Student Data With Id  when Enroll Course 
+router.put("/users/enroll/:id", verifyToken, async (req, res) => {
     const id = req.params.id;
     const user = req.body;
-    const filter = { _id: id }
+    const filter = { _id: id };
     const updateDoc = {
-        $set: {
-            name: user.name,
-            image: user.image,
+        $push: {
             enrolledCourseId: user.enrolledCourseId,
-            completedCourseId: user.completedCourseId,
-            fathersName: user.fathersName,
-            mothersName: user.mothersName,
-            email: user.email,
-            phoneNumber: user.phoneNumber
+            studentTotalPayment: user.studentTotalPayment
         }
-    }
+    };
+
+    const result = await userCollection.updateOne(filter, updateDoc);
+    res.send(result);
+});
+// Update Teacher Students Data With Id  when Enroll Course 
+router.put("/users/teacher/:id", verifyToken, async (req, res) => {
+    const id = req.params.id;
+    const user = req.body;
+    const filter = { _id: id };
+    console.log(id, filter);
+    const updateDoc = {
+        $inc: {
+            students: user.student
+        }
+    };
+
     const result = await userCollection.updateOne(filter, updateDoc);
     res.send(result);
 });

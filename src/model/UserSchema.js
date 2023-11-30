@@ -24,7 +24,10 @@ const UserSchema = new Schema({
         type: String,
     },
     enrolledCourseId: {
-        type: Number,
+        type: Array,
+    },
+    studentTotalPayment: {
+        type: Array,
     },
     completedCourseId: {
         type: Number,
@@ -44,8 +47,6 @@ const UserSchema = new Schema({
     socialmedia: {
         type: String,
     },
-
-
 });
 
 

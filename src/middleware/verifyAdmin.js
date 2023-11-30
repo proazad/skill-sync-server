@@ -1,3 +1,6 @@
+const userCollection = require("../model/UserSchema");
+
+  
   const verifyAdmin = async (req, res, next) => {
     const email = req.decoded.email;
     const query = { email: email };

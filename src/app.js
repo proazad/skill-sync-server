@@ -8,16 +8,11 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
-const courseCollection = require('./model/CourseSchema');
-
-
 const courseHandler = require("../src/router/courseHandler");
 const useHandler = require("./router/userHandler");
 const partnerHandler = require("./router/partnerHandler");
 const eventHandler = require("./router/eventHandler");
 const feedbackHandler = require("./router/feedbackHandler");
-
-
 applyMiddleware(app);
 app.use(courseHandler);
 app.use(useHandler);
