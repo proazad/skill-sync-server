@@ -4,8 +4,8 @@ const jwt = require('jsonwebtoken');
 var cookieParser = require('cookie-parser');
 const applyMiddleware = (app) => {
     app.use(cors({
-        // origin: ["https://skillsync-hub.web.app", "https://skillsync-hub.surge.sh"],
-        origin: ["http://localhost:5173"],
+        origin: ["https://skillsync-hub.web.app", "https://skillsync-hub.surge.sh"],
+        // origin: ["http://localhost:5173"],
         credentials: true,
     })
     );

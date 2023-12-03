@@ -44,10 +44,13 @@ const CourseSchema = new Schema({
     email: {
         type: String,
     },
-    isApproved:{
-        type:Boolean
+    isApproved: {
+        type: Boolean
+    },
+    isrejected: {
+        type: Boolean
     }
-   
+
 });
 
 const courseCollection = model("courses", CourseSchema);

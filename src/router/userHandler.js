@@ -6,10 +6,22 @@ const verifyInstructor = require('../middleware/verifyInstructor');
 const verifyAdmin = require('../middleware/verifyAdmin');
 const userCollection = require('../model/UserSchema');
 
-/* Get All User
+/* Get All User Okay
 */
 router.get("/users", async (req, res) => {
     const result = await userCollection.find();
+    res.send(result);
+});
+
+// Create a new user 
+router.post("/users", async (req, res) => {
+    const user = req.body;
+    const query = { email: user.email }
+    const existingUser = await userCollection.findOne(query);
+    if (existingUser) {
+        return res.send({ message: "User already Exist", insertedId: null })
+    }
+    const result = await userCollection.create(user);
     res.send(result);
 });
 
@@ -91,17 +103,7 @@ router.get("/users/:email", async (req, res) => {
 });
 
 
-// Create a new user 
-router.post("/users", async (req, res) => {
-    const user = req.body;
-    const query = { email: user.email }
-    const existingUser = await userCollection.findOne(query);
-    if (existingUser) {
-        return res.send({ message: "User already Exist", insertedId: null })
-    }
-    const result = await userCollection.insertOne(user);
-    res.send(result);
-});
+
 
 
 // Update user Student Data With Id  when Enroll Course 

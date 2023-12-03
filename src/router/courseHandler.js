@@ -8,9 +8,9 @@ const courseCollection = require('../model/CourseSchema');
 
 /**
  * Cousres Related All API Start here 
- *  Get All Courses API 
+ *   
  * */
-
+// Get All Courses API okay
 router.get("/courses", async (req, res) => {
     try {
         const result = await courseCollection.find();
@@ -21,7 +21,20 @@ router.get("/courses", async (req, res) => {
     }
 });
 
-// Get Courese By User Email 
+
+//Post Single Course okay
+router.post("/courses/instructor", verifyToken, verifyInstructor, async (req, res) => {
+    try {
+        const course = req.body;
+        const result = await courseCollection.create(course);
+        res.status(201).json(result);
+    } catch (error) {
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+
+// Get Courese By User Email Okay
 router.get("/courses/:email", verifyToken, verifyInstructor, async (req, res) => {
     if (req.params.email !== req.decoded.email) {
         return res.status(403).send({ message: "Access Forbbiden" });
@@ -31,7 +44,8 @@ router.get("/courses/:email", verifyToken, verifyInstructor, async (req, res) =>
     res.send(result);
 });
 
-// Get Single Course by Id 
+
+// Get Single Course by Id  okay
 router.get('/courses/single/:id', async (req, res) => {
     const id = req.params.id;
     const query = { _id: id };
@@ -43,7 +57,7 @@ router.get('/courses/single/:id', async (req, res) => {
 router.put("/courses/update/:id", verifyToken, verifyInstructor, async (req, res) => {
     const id = req.params.id;
     const course = req.body;
-    const filter = { _id: new ObjectId(id) }
+    const filter = { _id: id }
     const updateDoc = {
         $set: {
             title: course.title,
@@ -54,15 +68,14 @@ router.put("/courses/update/:id", verifyToken, verifyInstructor, async (req, res
             label: course.label,
             description: course.description,
             enrolled: course.enrolled,
-            mentor: course.mentor,
-            mentorId: course.mentorId,
             email: course.email
         }
     }
-    const result = await courseCollection.updateOne(filter, updateDoc);
+    const result = await courseCollection.findByIdAndUpdate(filter, updateDoc)
     res.send(result);
 });
-// Update Course When Enrolled 
+
+// Update Course When Enrolled Okay
 router.put("/courses/enroll/:id", verifyToken, async (req, res) => {
     const id = req.params.id;
     const course = req.body;
@@ -77,7 +90,7 @@ router.put("/courses/enroll/:id", verifyToken, async (req, res) => {
     res.send(result);
 });
 
-// Approve Course 
+// Approve Course  Okay
 router.put("/courses/approve/:id", verifyToken, verifyAdmin, async (req, res) => {
     const id = req.params.id;
     console.log(id)
@@ -93,45 +106,26 @@ router.put("/courses/approve/:id", verifyToken, verifyAdmin, async (req, res) =>
     res.send(result);
 });
 
-// Cancel Course 
+
+// Course Request Cancel okay 
 router.put("/courses/cancel/:id", verifyToken, verifyAdmin, async (req, res) => {
     const id = req.params.id;
     const filter = { _id: id }
     const updateDoc = {
         $set: {
-            isreject: true
+            isrejected: true
         }
     }
     const result = await courseCollection.updateOne(filter, updateDoc);
     res.send(result);
 });
 
-//Post Single Course
-router.post("/courses", verifyToken, verifyInstructor, async (req, res) => {
-    try {
-        const course = req.body;
 
-        // Validate the course data against the schema
-        const validationError = courseCollection.validate(course);
-
-        if (validationError) {
-            // If validation fails, return a 400 Bad Request with the error details
-            return res.status(400).json({ error: validationError.message });
-        }
-
-        const result = await courseCollection.create(course);
-        res.status(201).json(result);
-    } catch (error) {
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-});
-
-
-// Delete Single Course By ID 
+// Delete Single Course By ID  Okay
 router.delete("/courses/del/:id", async (req, res) => {
     const id = req.params.id;
-    const filter = { _id: new ObjectId(id) }
-    const result = await courseCollection.deleteOneOne(filter);
+    const filter = { _id: id }
+    const result = await courseCollection.deleteOne(filter);
     res.send(result);
 });
 
